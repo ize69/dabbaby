@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>break out</title>
+    <style>* { padding: 0; margin: 0; } canvas { background: #eee; display: block; margin: 0 auto; }</style>
+</head>
+<link rel="stylesheet" href="breakout.css">
+<body>
+<!img src="dababy.png" alt="dababy">
+<center>
+<span title="by Isaac Worsencroft">breakout </span>
+</center>
+<canvas id="myCanvas" width="980" height="640"></canvas>
+
+<!img id="dababy" width="128" height="128" src="dababy.png" alt="dacar">
+<script>
+	
+    var canvas = document.getElementById("myCanvas");
+    var ctx = canvas.getContext("2d");
+    var ballRadius = 26;
+    var x = canvas.width/2;
+    var y = canvas.height-30;
+    var dx = 4.5;
+    var dy = -3;
+    var paddleHeight = 35;
+    var paddleWidth = 125;
+    var paddleX = (canvas.width-paddleWidth)/2;
+    var rightPressed = false;
+    var leftPressed = false;
+    var brickRowCount = 11;
+    var brickColumnCount = 4;
+    var brickWidth = 75;
+    var brickHeight = 20;
+    var brickPadding = 10;
+    var brickOffsetTop = 30;
+    var brickOffsetLeft = 30;
+    var score = 0;
+	var velcity = 0;
+    var lives = 3;
+	var acceration = 36;
+	var lastCalledTime;
+	var fps=0;
+	var maxscroe = brickRowCount*10;
+	var midpoint = (canvas.width/2)-0;
+    var bricks = [];
+	var context = canvas.getContext('2d');
+	var leftvelocity = true;
+	var img = document.createElement('img');
+	img.src = "dababy.png";
+	var pad = document.createElement('img');
+	pad.src = "3090.png";
+	var grd = ctx.createRadialGradient(0, 0, ballRadius/2, 50, 50, ballRadius);
+	grd.addColorStop(0, "red");
+	grd.addColorStop(1,"#b2ad7f");
+	
+    for(var c=0; c<brickColumnCount; c++) {
+        bricks[c] = [];
+        for(var r=0; r<brickRowCount; r++) {
+            bricks[c][r] = { x: 0, y: 0, status: 1 };
+        }
+    }
+    document.addEventListener("keydown", keyDownHandler, false);
+    document.addEventListener("keyup", keyUpHandler, false);
+    document.addEventListener("mousemove", mouseMoveHandler, false);
+    function keyDownHandler(e) {
+        if(e.code  == "ArrowRight") {
+            rightPressed = true;
+        }
+        else if(e.code == 'ArrowLeft') {
+            leftPressed = true;
+        }
+    }
+    function keyUpHandler(e) {
+        if(e.code == 'ArrowRight') {
+            rightPressed = false;
+        }
+        else if(e.code == 'ArrowLeft') {
+            leftPressed = false;
+        }
+    }
+    function mouseMoveHandler(e) {
+        var relativeX = e.clientX - canvas.offsetLeft;
+        if(relativeX > 0 && relativeX < canvas.width) {
+            paddleX = relativeX - paddleWidth/2;
+        }
+    }
+    function collisionDetection() {
+        for(var c=0; c<brickColumnCount; c++) {
+            for(var r=0; r<brickRowCount; r++) {
+                var b = bricks[c][r];
+                if(b.status == 1) {
+                    if(x > b.x && x < b.x+brickWidth && y > b.y && y < b.y+brickHeight) {
+                        dy = -dy;
+                        b.status = 0;
+						
+						score+=c+1;
+                        if(score == maxscroe /*brickRowCount*brickColumnCount*/) {
+                            alert("YOU WIN, CONGRATS!");
+                            document.location.reload();
+                        }
+                    }
+                }
+            }
+        }
+    }
+	
+	
+	
+	
+    function drawBall() {/*
+        ctx.beginPath();
+        ctx.arc(x, y, ballRadius, 0, Math.PI*2);
+		
+		var grd = ctx.createRadialGradient(x, y, ballRadius/2, x, y, ballRadius);
+		grd.addColorStop(0, "#a2b9bc");
+		grd.addColorStop(1,"#b2ad7f");
+		
+        ctx.fillStyle = grd;
+        ctx.fill();
+        ctx.closePath();*/
+	
+	ctx.drawImage(img,x,y,26,26);
+    }
+    function drawPaddle() {
+       /*ctx.beginPath();
+        ctx.rect(paddleX, canvas.height-paddleHeight, paddleWidth, paddleHeight);
+        ctx.fillStyle = "#0095DD";
+        ctx.fill();
+        ctx.closePath();*/
+		ctx.drawImage(pad, paddleX, canvas.height-paddleHeight, paddleWidth, paddleHeight);
+    }
+    function drawBricks() {
+        for(var c=0; c<brickColumnCount; c++) {
+			switch(c){
+					case 0:
+                    ctx.fillStyle = "#6b5b95";
+					break;
+					case 1:
+                    ctx.fillStyle = "#feb236";
+					break;
+					case 2:
+                    ctx.fillStyle = "#d64161";
+					break;
+					case 3:
+                    ctx.fillStyle = "#ff7b25";
+					}
+            for(var r=0; r<brickRowCount; r++) {
+                if(bricks[c][r].status == 1) {
+                    var brickX = (r*(brickWidth+brickPadding))+brickOffsetLeft;
+                    var brickY = (c*(brickHeight+brickPadding))+brickOffsetTop;
+                    bricks[c][r].x = brickX;
+                    bricks[c][r].y = brickY;
+                    ctx.beginPath();
+                    ctx.rect(brickX, brickY, brickWidth, brickHeight);
+					
+					
+                    ctx.fill();
+                    ctx.closePath();
+                }
+				
+			}
+			
+        }
+    }
+    function drawScore() {
+        ctx.font = "16px Arial";
+        ctx.fillStyle = "#0095DD";
+        ctx.fillText("Score: "+score, 8, 20);
+		ctx.fillText("fps:   "+fps, midpoint, 20);
+    }
+    function drawLives() {
+        ctx.font = "16px Arial";
+        ctx.fillStyle = "#0095DD";
+        ctx.fillText("Lives: "+lives, canvas.width-65, 20);
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawBricks();
+        drawBall();
+        drawPaddle();
+        drawScore();
+        drawLives();
+        collisionDetection();
+
+        if(x + dx > canvas.width-ballRadius || x + dx < ballRadius) {
+            dx = -dx;
+		if(dx<0){
+		img.src = "dababyL.png";
+		}
+		else{
+        img.src = "dababy.png";
+		}
+        }
+        if(y + dy < ballRadius) {
+            dy = -dy;
+        }
+        
+		else if(y  + dy > canvas.height-paddleHeight) {
+			var padxCompinsate = (score/27.5)+paddleX;
+            if(x > padxCompinsate && x < padxCompinsate + paddleWidth) {
+                dy = -dy;
+            }
+            else {
+                lives--;
+				
+                if(!lives) {
+                    alert("GAME OVER");
+                    document.location.reload();
+                }
+                else {
+                    x = canvas.width/2;
+                    y = canvas.height-36;
+                    dx =   5.5 + (dx*(score/acceration)/Math.abs(dx))/10;
+                    dy = - 4 + (dy*(score/acceration)/Math.abs(dy))/10;
+                    paddleX = (canvas.width-paddleWidth)/2;
+					img.src = "dababy.png";
+                }
+            }
+        }
+
+        if(rightPressed && paddleX < canvas.width-paddleWidth) {
+            paddleX += 7;
+        }
+        else if(leftPressed && paddleX > 0) {
+            paddleX -= 7;
+        }
+
+        x += dx+(dx*(score/acceration)/Math.abs(dx))/10;
+        y += dy+(dy*(score/acceration)/Math.abs(dy))/10;
+        requestAnimationFrame(draw);
+		
+		if(!lastCalledTime) {
+			lastCalledTime = Date.now();
+			fps = 0;
+			return;
+		}
+		delta = (Date.now() - lastCalledTime)/1000;
+		lastCalledTime = Date.now();
+		fps = parseInt(1 / delta);
+    }
+	
+
+	
+    draw();
+</script>
+
+</body>
+<footer>
+<center>
+<p><small>copyright 2021</small></p>
+</footer>
+</center>
+</html>
